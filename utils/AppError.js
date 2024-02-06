@@ -1,10 +1,10 @@
 class AppError extends Error {
-  constructor(message = "Something went wrong", statusCode = 500) {
+  constructor(statusCode = 500, message = "Something went wrong") {
     super(message);
     this.name = this.constructor.name;
     this.status = "fail";
     this.statusCode = statusCode;
-
+    
     Error.captureStackTrace(this, this.constructor);
   }
 }
