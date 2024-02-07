@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import AppError from "../utils/AppError.js";
 import asyncHandler from "../utils/AsyncHandler.js";
-import Customer from "../models/user.model.js";
+import User from "../models/user.model.js";
 
 const verifyJwt = asyncHandler(async (req, res, next) => {
   const accessToken =
@@ -14,10 +14,11 @@ const verifyJwt = asyncHandler(async (req, res, next) => {
 
   const decodedToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
 
-  const customer = await Customer.findById(decodedToken?._id).select(
+  const user = await User.findById(decodedToken?._id).select(
     "-password"
   );
-  req.customer = customer;
+
+  req.user = user;
 
   next();
 });

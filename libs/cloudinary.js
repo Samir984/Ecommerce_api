@@ -7,18 +7,21 @@ cloudinary.config({
   api_secret: process.env.COUDINARY_SECRET,
 });
 
-const uploadImageOnCloudinary = async function (localFilePath) {
+const uploadImageOnCloudinary = async function (
+  localFilePath,
+  folder = "customers"
+) {
   try {
     if (!localFilePath) return null;
     console.log("entre cloud", localFilePath);
     //upload to cloudinary if localFilePath exists
     const result = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
-      folder:"customers"
+      folder,
     });
 
     // console.log("file uploaded to cloudinary", result.url);
-    
+
     fs.unlinkSync(localFilePath); //remove file from localFilePath after uploading to cloudinary
     return result;
   } catch (error) {

@@ -1,4 +1,7 @@
-import { uploadImageOnCloudinary } from "../libs/cloudinary.js";
+import {
+  deleteAssetFromCloudinary,
+  uploadImageOnCloudinary,
+} from "../libs/cloudinary.js";
 import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
@@ -84,8 +87,24 @@ export const updateAvatar = asyncHandler(async (req, res) => {
 
   const newAvatar = await uploadImageOnCloudinary(newAavatarLocalPath);
   if (!newAvatar) throw new AppError(400, "Error while uploading avatar");
+  const avatarToDelete = req.user?.avatar.public_id;
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        avatar: {
+          public_id: newAvatar.public_id,
+          url: newAvatar.secure_url,
+        },
+      },
+    },
+    { new: true }
+  ).select("-password");
 
-  const user = await User.findById(req.user._id).select("avatar");
+  if (updatedUser && updatedUser.avatar.public_id) {
+    await deleteAssetFromCloudinary(avatarToDelete);
+  }
+  console.log(avatarToDelete, "e");
 
-  
+  return res.status(200).json(new AppResponse(updatedUser));
 });
