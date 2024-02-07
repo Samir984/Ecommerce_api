@@ -1,14 +1,15 @@
-export default asynnHandler = (requestHandler) => {
+import AppError from "./AppError.js";
+
+const asyncHandler = (requestHandler) => {
   return async (req, res, next) => {
     try {
-      await requestHandler(req, res);
+      console.log("async");
+      await requestHandler(req, res, next);
     } catch (error) {
-      const statusCode = error.statusCode || 500;
-      const errorMessage = error.Message || "Internal server Error";
-      res.status(statusCode).json({
-        status: "fail",
-        error: errorMessage,
-      });
+      console.log(`\nError occurred 💥. \t ${error}\n\n`);
+      next(new AppError(500, error.message));
     }
   };
 };
+
+export default asyncHandler;
