@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const customerSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   fullName: {
     type: String,
     required: true,
@@ -24,21 +24,26 @@ const customerSchema = new mongoose.Schema({
     required: true,
     minlength: 8,
   },
+  role: {
+    type: String,
+    default: "CUSTOMER",
+    enum:["ADMIN","CUSTOMER","SELLER"]
+  },
 
   avatar: {
-    project_id: String,
     url: String,
+    public_id: String,
   },
 });
 
-customerSchema.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   console.log("Save");
   this.password = await bcrypt.hash(this.password, 8);
   next();
 });
 
-customerSchema.methods = {
+userSchema.methods = {
   comparePassword: async function (plainTextPassword) {
     return await bcrypt.compare(plainTextPassword, this.password);
   },
@@ -50,5 +55,5 @@ customerSchema.methods = {
   },
 };
 
-const Customer = mongoose.model("Customer", customerSchema);
-export default Customer;
+const User = mongoose.model("User", userSchema);
+export default User;
