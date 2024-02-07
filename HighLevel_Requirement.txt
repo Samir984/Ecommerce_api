@@ -1,0 +1,7 @@
+-> A eccommer app where seller and buyer register .
+-> Sellers are able to list their products on the platform.
+-> Buyers can browse through product listings and make purchases on the platform.
+
+
+//Bussiness point
+-> Sellers have to pay a 3% commission on their earnings when their monthly sales surpass Rs 20,000.
