@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const customerSchema = mongoose.Schema({
+const customerSchema = new mongoose.Schema({
   fullName: {
     type: String,
     required: true,
@@ -26,24 +26,26 @@ const customerSchema = mongoose.Schema({
   },
 
   avatar: {
-    type: String,
+    project_id: String,
+    url: String,
   },
 });
 
 customerSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash();
+  console.log("Save");
+  this.password = await bcrypt.hash(this.password, 8);
   next();
 });
 
 customerSchema.methods = {
   comparePassword: async function (plainTextPassword) {
-    return await bcrypt.compare(plainTextPassword, this, password);
+    return await bcrypt.compare(plainTextPassword, this.password);
   },
 
   generateAccessToken: async function () {
     return jwt.sign({ _id: this._id }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: process.env.ACCESS_TOKEN_SECRET,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
     });
   },
 };

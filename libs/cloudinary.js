@@ -10,14 +10,15 @@ cloudinary.config({
 const uploadImageOnCloudinary = async function (localFilePath) {
   try {
     if (!localFilePath) return null;
-
+    console.log("entre cloud", localFilePath);
     //upload to cloudinary if localFilePath exists
     const result = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
+      folder:"customers"
     });
 
     // console.log("file uploaded to cloudinary", result.url);
-
+    
     fs.unlinkSync(localFilePath); //remove file from localFilePath after uploading to cloudinary
     return result;
   } catch (error) {
@@ -38,11 +39,9 @@ const deleteAssetFromCloudinary = async function (
       resource_type: `${resource_type}`,
     });
   } catch (error) {
-      console.log("delete assset operation failed", error);
-      return error;
+    console.log("delete assset operation failed", error);
+    return error;
   }
 };
-
-cloudinary.v2.api.delete_folder("/samples").then(console.log);
 
 export { uploadImageOnCloudinary, deleteAssetFromCloudinary };
