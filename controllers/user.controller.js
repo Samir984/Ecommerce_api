@@ -32,6 +32,7 @@ export const signUpUser = asyncHandler(async (req, res) => {
 
   const avatar =
     avatarLocalPath && (await uploadImageOnCloudinary(avatarLocalPath));
+    
   const createUser = await User.create({
     fullName,
     email,

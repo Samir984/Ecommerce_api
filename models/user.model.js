@@ -2,39 +2,44 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-const userSchema = new mongoose.Schema({
-  fullName: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    validate: {
-      validator: function (value) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(value);
+const userSchema = new mongoose.Schema(
+  {
+    fullName: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      validate: {
+        validator: function (value) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return emailRegex.test(value);
+        },
+        message: "Invalid email format",
       },
-      message: "Invalid email format",
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 8,
+    },
+    role: {
+      type: String,
+      default: "CUSTOMER",
+      enum: ["ADMIN", "CUSTOMER", "SELLER"],
+    },
+
+    avatar: {
+      url: String,
+      public_id: String,
     },
   },
-  password: {
-    type: String,
-    required: true,
-    minlength: 8,
-  },
-  role: {
-    type: String,
-    default: "CUSTOMER",
-    enum:["ADMIN","CUSTOMER","SELLER"]
-  },
-
-  avatar: {
-    url: String,
-    public_id: String,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

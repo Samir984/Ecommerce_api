@@ -10,7 +10,6 @@ import verifiedJwt from "../middlewares/auth.middleware.js"; //
 const userRouter = express.Router();
 
 userRouter.route("/signup").post(upload.single("avatar"), signUpUser);
-
 userRouter.route("/signin").post(signInUser);
 
 // Secure route
