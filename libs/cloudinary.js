@@ -9,15 +9,15 @@ cloudinary.config({
 
 const uploadImageOnCloudinary = async function (
   localFilePath,
-  folder = "customers"
+
 ) {
   try {
     if (!localFilePath) return null;
-    console.log("entre cloud", localFilePath);
+   
     //upload to cloudinary if localFilePath exists
     const result = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
-      folder,
+      folder:"users",
     });
 
     // console.log("file uploaded to cloudinary", result.url);

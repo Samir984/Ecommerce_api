@@ -6,7 +6,6 @@ import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
-import AsyncHandler from "../utils/AsyncHandler.js";
 
 const GenerateAccessTokenAndSend = async (user, res) => {
   const accessToken = await user.generateAccessToken();
@@ -20,9 +19,9 @@ const GenerateAccessTokenAndSend = async (user, res) => {
 };
 
 //signup User
-export const signUpUser = AsyncHandler(async (req, res) => {
+export const signUpUser = asyncHandler(async (req, res) => {
   const { fullName, email, password, role } = req.body;
-  console.log(fullName);
+
   if (!fullName || !email || !password)
     throw new AppError(400, "All fileds are required");
 
@@ -33,12 +32,11 @@ export const signUpUser = AsyncHandler(async (req, res) => {
 
   const avatar =
     avatarLocalPath && (await uploadImageOnCloudinary(avatarLocalPath));
-  console.log(avatar);
   const createUser = await User.create({
     fullName,
     email,
     password,
-    role,
+    role: role?.toUpperCase(),
     avatar: {
       public_id: avatar?.public_id || undefined,
       url: avatar?.secure_url || undefined,
@@ -71,12 +69,11 @@ export const signInUser = asyncHandler(async (req, res) => {
 
   const isPasswordCorrect = await user.comparePassword(password);
   if (!isPasswordCorrect) throw new AppError(401, "Invalid user credentials.");
-  console.log(isPasswordCorrect);
 
   GenerateAccessTokenAndSend(user, res);
 });
 
-export const signOutUser = AsyncHandler(async (req, res) => {
+export const signOutUser = asyncHandler(async (req, res) => {
   res.clearCookie("jwtToken");
   res.json(new AppResponse("Successfully signout"));
 });
@@ -104,7 +101,6 @@ export const updateAvatar = asyncHandler(async (req, res) => {
   if (updatedUser && updatedUser.avatar.public_id) {
     await deleteAssetFromCloudinary(avatarToDelete);
   }
-  console.log(avatarToDelete, "e");
 
   return res.status(200).json(new AppResponse(updatedUser));
 });
