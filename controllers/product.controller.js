@@ -1,12 +1,14 @@
-import { uploadImageOnCloudinary } from "../libs/cloudinary.js";
+import { deleteAssetFromCloudinary, uploadImageOnCloudinary } from "../libs/cloudinary.js";
 import Product from "../models/product.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
+import mongoose from "mongoose";
 
 export const listProduct = asyncHandler(async (req, res) => {
-  console.log("enter");
+ console.log("enter")
   const seller_id = req.user._id;
+
   const {
     productName,
     productDescription,
@@ -28,21 +30,11 @@ export const listProduct = asyncHandler(async (req, res) => {
   )
     throw new Error(400, "all field are required");
 
-    console.log(req?.files)
-  const localFilePath1 = req?.files?.productImg1[0].path;
-  const localFilePath2 = req?.files?.productImg2[0].path;
-  const localFilePath3 = req?.files?.productImg3[0].path;
-  if (!localFilePath1 || !localFilePath2 || !localFilePath3)
-    throw new Error(400, "all three product image are required");
+  const localFilePath = req?.file?.path;
 
-  const uploadPromises = [
-    uploadImageOnCloudinary(localFilePath1, "products"),
-    uploadImageOnCloudinary(localFilePath2, "products"),
-    uploadImageOnCloudinary(localFilePath3, "products"),
-  ];
-  const [productImg1, productImg2, productImg3] = await Promise.all(
-    uploadPromises
-  );
+  if (!localFilePath) throw new Error(400, "product image is required");
+
+  const productImg = await uploadImageOnCloudinary(localFilePath, "products");
 
   const createProduct = await Product.create({
     productName,
@@ -53,18 +45,8 @@ export const listProduct = asyncHandler(async (req, res) => {
     subCategory,
     price,
     productImg: {
-      img1: {
-        url: productImg1?.secure_url,
-        public_id: productImg1?.public_id,
-      },
-      img2: {
-        url: productImg2?.secure_url,
-        public_id: productImg2?.public_id,
-      },
-      img3: {
-        url: productImg3?.secure_url,
-        public_id: productImg3?.public_id,
-      },
+      url: productImg?.secure_url,
+      public_id: productImg?.public_id,
     },
     seller_id,
   });
@@ -72,4 +54,23 @@ export const listProduct = asyncHandler(async (req, res) => {
   if (!createProduct) throw new AppError(500, "Product upload failed");
 
   return res.status(201).json(new AppResponse(createProduct));
+});
+
+export const deleteProductListing = asyncHandler(async (req, res) => {
+  const { id: productToDelete } = req.params;
+  
+  const product = await Product.findById(productToDelete);
+  if (!product) throw new AppError(400, "No product found");
+
+  if (product.seller_id != req.user._id.toString()) {
+    throw new AppError(400, "You are not authorized to delete other product");
+  }
+console.log(product)
+  const productImgToDelete = product.productImg.public_id;
+
+  console.log(productImgToDelete);
+  const deletedProduct = await Product.findByIdAndDelete(productToDelete);
+  if (!deletedProduct) throw new Error(500, "fail to delete product");
+  await deleteAssetFromCloudinary(productImgToDelete);
+  return res.status(200).json(new AppResponse("null"));
 });

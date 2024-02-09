@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const productSchema = new mongoose.Schema(
+const productSchema = new Schema(
   {
     productName: {
       type: String,
@@ -21,18 +21,8 @@ const productSchema = new mongoose.Schema(
       },
     },
     productImg: {
-      img1: {
-        url: { type: String, required: true },
-        public_id: { type: String, required: true },
-      },
-      img2: {
-        url: { type: String, required: true },
-        public_id: { type: String, required: true },
-      },
-      img3: {
-        url: { type: String, required: true },
-        public_id: { type: String, required: true },
-      },
+      url: { type: String, required: true },
+      public_id: { type: String, required: true },
     },
     brand: {
       type: String,
@@ -51,7 +41,7 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
     seller_id: {
-      type: String,
+      type: String, // Import Schema from Mongoose
       required: true,
     },
   },

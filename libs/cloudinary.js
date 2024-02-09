@@ -7,10 +7,7 @@ cloudinary.config({
   api_secret: process.env.COUDINARY_SECRET,
 });
 
-const uploadImageOnCloudinary = async function (
-  localFilePath,
-  folder = "user"
-) {
+const uploadImageOnCloudinary = async function (localFilePath, folder) {
   try {
     if (!localFilePath) return null;
 

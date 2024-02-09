@@ -31,8 +31,12 @@ export const signUpUser = asyncHandler(async (req, res) => {
   const avatarLocalPath = req?.file?.path;
 
   const avatar =
-    avatarLocalPath && (await uploadImageOnCloudinary(avatarLocalPath));
-    
+    avatarLocalPath &&
+    (await uploadImageOnCloudinary(
+      avatarLocalPath,
+      `${role?.toLowerCase() || "user" + "s"}`
+    ));
+
   const createUser = await User.create({
     fullName,
     email,
@@ -74,16 +78,22 @@ export const signInUser = asyncHandler(async (req, res) => {
   GenerateAccessTokenAndSend(user, res);
 });
 
+
+//signout user
 export const signOutUser = asyncHandler(async (req, res) => {
   res.clearCookie("jwtToken");
   res.json(new AppResponse("Successfully signout"));
 });
 
+// update avatar
 export const updateAvatar = asyncHandler(async (req, res) => {
   const newAavatarLocalPath = req?.file?.path;
   if (!newAavatarLocalPath) throw new AppError(400, "Avatar file is missing");
 
-  const newAvatar = await uploadImageOnCloudinary(newAavatarLocalPath);
+  const newAvatar = await uploadImageOnCloudinary(
+    newAavatarLocalPath,
+    `${req.user.role.toLowerCase() + "s"}`
+  );
   if (!newAvatar) throw new AppError(400, "Error while uploading avatar");
   const avatarToDelete = req.user?.avatar.public_id;
   const updatedUser = await User.findByIdAndUpdate(
@@ -91,13 +101,14 @@ export const updateAvatar = asyncHandler(async (req, res) => {
     {
       $set: {
         avatar: {
-          public_id: newAvatar.public_id,
           url: newAvatar.secure_url,
+          public_id: newAvatar.public_id,
         },
       },
     },
     { new: true }
   ).select("-password");
+  console.log(updatedUser);
 
   if (updatedUser && updatedUser.avatar.public_id) {
     await deleteAssetFromCloudinary(avatarToDelete);
