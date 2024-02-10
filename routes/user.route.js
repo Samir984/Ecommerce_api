@@ -14,7 +14,7 @@ userRouter.route("/signin").post(signInUser);
 
 // Secure route
 userRouter.use(verifiedJwt);
-userRouter.route("/signout").get(signOutUser); 
+userRouter.route("/signout").post(signOutUser); 
 userRouter.route("/updateavatar").post(upload.single("avatar"), updateAvatar);
 
 export default userRouter;

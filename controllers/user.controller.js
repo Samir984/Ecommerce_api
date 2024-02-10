@@ -34,7 +34,7 @@ export const signUpUser = asyncHandler(async (req, res) => {
     avatarLocalPath &&
     (await uploadImageOnCloudinary(
       avatarLocalPath,
-      `${role?.toLowerCase() || "user" + "s"}`
+      `${role?.toLowerCase() || "buyer" + "s"}`
     ));
 
   const createUser = await User.create({
@@ -77,7 +77,6 @@ export const signInUser = asyncHandler(async (req, res) => {
 
   GenerateAccessTokenAndSend(user, res);
 });
-
 
 //signout user
 export const signOutUser = asyncHandler(async (req, res) => {

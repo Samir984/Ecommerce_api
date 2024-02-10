@@ -41,7 +41,7 @@ const productSchema = new Schema(
       required: true,
     },
     seller_id: {
-      type: String, // Import Schema from Mongoose
+      type: String, 
       required: true,
     },
   },
