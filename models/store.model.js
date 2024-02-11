@@ -7,18 +7,20 @@ const storeschema = new Schema(
       required: "true",
     },
     storeImage: {
-      type: String,
-      default: "",
+      url: { type: String, default: "" },
+      public_id: { type: String, default: "" },
     },
-
     seller_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
+      unique: true,
     },
-    prodcuts: [
+    products: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",
+        // default: ""
       },
     ],
   },
