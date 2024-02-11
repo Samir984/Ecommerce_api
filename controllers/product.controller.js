@@ -9,7 +9,6 @@ import asyncHandler from "../utils/AsyncHandler.js";
 import mongoose from "mongoose";
 
 export const listProduct = asyncHandler(async (req, res) => {
-  console.log("enter");
   const seller_id = req.user._id;
 
   const {
@@ -65,7 +64,9 @@ export const deleteProductListing = asyncHandler(async (req, res) => {
   const product = await Product.findById(productToDelete);
   if (!product) throw new AppError(400, "No product found");
 
-  if (product.seller_id != req.user._id.toString()) {
+  console.log(product.seller_id, req.user._id);
+
+  if (product.seller_id.toString() != req.user._id.toString()) {
     throw new AppError(400, "You are not authorized to delete other product");
   }
 
@@ -74,6 +75,9 @@ export const deleteProductListing = asyncHandler(async (req, res) => {
   const deletedProduct = await Product.findByIdAndDelete(productToDelete);
   if (!deletedProduct) throw new Error(500, "fail to delete product");
   await deleteAssetFromCloudinary(productImgToDelete);
-  
+
   return res.status(200).json(new AppResponse("null"));
 });
+
+
+
