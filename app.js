@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.route.js";
 import productRouter from "./routes/product.route.js";
 import cartRouter from "./routes/cart.route.js";
+import orderRouter from "./routes/order.route.js";
 
 const app = express();
 // Globle Middleware
@@ -13,7 +14,9 @@ app.use(cookieParser());
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/users/products", productRouter);
 app.use("/api/v1/users/carts", cartRouter);
-app.use("/api/v1/users/store", cartRouter);
+app.use("/api/v1/users/stores", storeRouter);
+app.use("/api/v1/users/orders", orderRouter);
+
 
 //Error route
 app.use((err, req, res, next) => {

@@ -3,6 +3,7 @@ import {
   uploadImageOnCloudinary,
 } from "../libs/cloudinary.js";
 import Product from "../models/product.model.js";
+import Store from "../models/store.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
@@ -53,6 +54,7 @@ export const listProduct = asyncHandler(async (req, res) => {
     seller_id,
   });
 
+ 
   if (!createProduct) throw new AppError(500, "Product upload failed");
 
   return res.status(201).json(new AppResponse(createProduct));
@@ -78,6 +80,3 @@ export const deleteProductListing = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new AppResponse("null"));
 });
-
-
-

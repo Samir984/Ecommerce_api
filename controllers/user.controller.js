@@ -15,7 +15,7 @@ const GenerateAccessTokenAndSend = async (user, res) => {
   };
   res.cookie("jwtToken", accessToken, cookieOptions);
 
-  res.status(200).json(new AppResponse("User Logged in successfully"));
+  res.status(200).json(new AppResponse(user));
 };
 
 //signup User

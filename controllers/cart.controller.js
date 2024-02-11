@@ -1,4 +1,5 @@
 import Cart from "../models/cart.model.js";
+import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
@@ -22,6 +23,12 @@ export const addToCart = asyncHandler(async (req, res) => {
       totalQuantity,
       totalPrice,
     });
+  }
+
+  if (totalQuantity) {
+    const user = await User.findById(user_id);
+    user.notification = totalQuantity;
+    await user.save();
   }
 
   return res.status(200).json(new AppResponse(ifExitCart));

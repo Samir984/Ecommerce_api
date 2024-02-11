@@ -7,6 +7,14 @@ const orderScema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    location: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: Number,
+      required: true,
+    },
     cart: {
       type: [
         {

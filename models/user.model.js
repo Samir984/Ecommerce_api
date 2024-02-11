@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
       url: { type: String, default: "" },
       public_id: { type: String, default: "" },
     },
+    notification: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
