@@ -35,13 +35,6 @@ export const listProduct = asyncHandler(async (req, res) => {
   const storeExit = await Store.findOne({ seller_id: req.user._id });
   if (!storeExit) throw new AppError(400, "store doesn't exits");
 
-  // if (storeExit.seller_id.toString() !== req.user._id.toString()) {
-  //   throw new AppError(
-  //     400,
-  //     "you are not authorized to list you product in other store"
-  //   );
-  // }
-  const store_id = storeExit._id;
   const localFilePath = req?.file?.path;
 
   if (!localFilePath) throw new Error(400, "product image is required");
@@ -60,18 +53,13 @@ export const listProduct = asyncHandler(async (req, res) => {
       url: productImg?.secure_url,
       public_id: productImg?.public_id,
     },
-    store_id,
+    store_id: storeExit._id,
   });
-  console.log(storeExit._id, createProduct._id);
-
-  const updateStore = await Store.updateOne(
-    { _id: storeExit._id },
-    { $push: { products: createProduct._id } }
-  );
-  if (!updateStore) throw new Error(400, "fail to update store");
-
-  console.log(updateStore);
   if (!createProduct) throw new AppError(500, "Product upload failed");
+
+  //update store listed products
+  storeExit.totalListedProducts += 1;
+  await storeExit.save();
 
   return res.status(201).json(new AppResponse(createProduct));
 });
@@ -83,8 +71,8 @@ export const deleteProductListing = asyncHandler(async (req, res) => {
   const product = await Product.findById(productToDelete);
   if (!product) throw new AppError(400, "No product found");
 
+  // cheaking that valid seller is making delete request
   const store = await Store.findById(product.store_id);
-
   if (store.seller_id.toString() != req.user._id.toString()) {
     throw new AppError(400, "You are not authorized to delete other product");
   }
@@ -95,10 +83,9 @@ export const deleteProductListing = asyncHandler(async (req, res) => {
   if (!deletedProduct) throw new Error(500, "fail to delete product");
   await deleteAssetFromCloudinary(productImgToDelete);
 
-  const updateStore = await Store.updateOne(
-    { _id: store._id },
-    { $pull: { products: productToDelete } }
-  );
+  //update store listed products
+  store.totalListedProducts -= 1;
+  await store.save();
 
   return res.status(200).json(new AppResponse("null"));
 });

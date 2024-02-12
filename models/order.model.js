@@ -15,44 +15,21 @@ const orderScema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    cart: {
-      type: [
-        {
-          productName: {
-            type: String,
-            required: true,
-          },
-          productImg: {
-            type: String,
-            required: "true",
-          },
-          quantity: {
-            type: Number,
-            required: true,
-          },
-          product_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Product",
-          },
-          store_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Store",
-          },
-          price: {
-            type: Number,
-            required: true,
-          },
-        },
-      ],
-      required: true,
-    },
-    totalQuantity: {
+    quantity: {
       type: Number,
       required: true,
     },
-    totalPrice: {
+    store_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Store",
+    },
+    product_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
+    extraPrice: {
       type: Number,
-      required: true,
+      default: 100,
     },
   },
   {

@@ -16,13 +16,21 @@ const storeschema = new Schema(
       required: true,
       unique: true,
     },
-    products: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-        // default: ""
-      },
-    ],
+    totalListedProducts: {
+      type: Number,
+      default: 0,
+    },
+
+    totalReceivedOrder: {
+      type: Number,
+      default: 0,
+    },
+
+    monitization: {
+      type: String,
+      enum: ["on", "off"],
+      default: "off",
+    },
   },
   {
     timestamps: true,
