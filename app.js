@@ -5,11 +5,21 @@ import productRouter from "./routes/product.route.js";
 import cartRouter from "./routes/cart.route.js";
 import orderRouter from "./routes/order.route.js";
 import storeRouter from "./routes/store.route.js";
-
+import cors from "cors";
+import helmet from "helmet";
 const app = express();
+
 // Globle Middleware
 app.use(express.json());
+app.use(helmet());
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: "*",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    optionsSuccessStatus: 204,
+  })
+);
 
 // Routes Middleware
 app.use("/api/v1/users", userRouter);
