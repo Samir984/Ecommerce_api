@@ -18,6 +18,14 @@ app.use("/api/v1/users/carts", cartRouter);
 app.use("/api/v1/users/stores", storeRouter);
 app.use("/api/v1/users/orders", orderRouter);
 
+//test
+app.get("/", (req, res) => {
+  console.log("all good");
+  res.status(200).json({
+    status: "success",
+    data: "all code on server",
+  });
+});
 
 //Error route
 app.use((err, req, res, next) => {
