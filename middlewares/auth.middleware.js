@@ -9,14 +9,12 @@ const verifyJwt = asyncHandler(async (req, res, next) => {
     req.header("Authorization")?.replace("Bearer ", "");
 
   if (!accessToken) {
-    throw new AppError(401, "Unauthorized request");
+    throw new AppError(401, "Unauthorized request:: Acess Token not found");
   }
 
   const decodedToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
 
-  const user = await User.findById(decodedToken?._id).select(
-    "-password"
-  );
+  const user = await User.findById(decodedToken?._id).select("-password");
 
   req.user = user;
   next();

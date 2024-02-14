@@ -33,7 +33,7 @@ app.get("/", (req, res) => {
   console.log("all good");
   res.status(200).json({
     status: "success",
-    data: "all code on server",
+    data: "all good on server",
   });
 });
 
