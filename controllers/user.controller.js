@@ -24,7 +24,7 @@ export const signUpUser = asyncHandler(async (req, res) => {
 
   if (!fullName || !email || !password)
     throw new AppError(400, "All fileds are required");
-
+  console.log(fullName, email, "signup");
   const userExit = await User.findOne({ email });
   if (userExit) throw new AppError(409, "Account already exits, Please login");
 
