@@ -9,22 +9,29 @@ import asyncHandler from "../utils/AsyncHandler.js";
 
 const GenerateAccessTokenAndSend = async (user, res) => {
   const accessToken = await user.generateAccessToken();
-  const cookieOptions = {
-    secure: true,
-    httpOnly: true,
-  };
-  res.cookie("jwtToken", accessToken, cookieOptions);
 
-  res.status(200).json(new AppResponse(user));
+  const userResponse = {
+    _id: user._id,
+    fullName: user.fullName,
+    email: user.email,
+    role: user.role,
+    avatar: user.avatar,
+    jwtToken: accessToken,
+  };
+
+  res.status(200).json(new AppResponse(userResponse));
 };
 
 //signup User
 export const signUpUser = asyncHandler(async (req, res) => {
   const { fullName, email, password, role } = req.body;
-
-  if (!fullName || !email || !password)
+  console.log("user1", req.body);
+  if (!fullName || !email || !password) {
     throw new AppError(400, "All fileds are required");
+  }
+
   console.log(fullName, email, "signup");
+
   const userExit = await User.findOne({ email });
   if (userExit) throw new AppError(409, "Account already exits, Please login");
 

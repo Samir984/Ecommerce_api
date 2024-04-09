@@ -6,10 +6,17 @@ const storeschema = new Schema(
       type: String,
       required: "true",
     },
-    storeImage: {
-      url: { type: String, default: "" },
-      public_id: { type: String, default: "" },
+
+    number: {
+      type: Number,
+      required: "true",
     },
+
+    address: {
+      type: String,
+      required: "true",
+    },
+
     seller_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -4,11 +4,10 @@ import {
 } from "../libs/cloudinary.js";
 import Product from "../models/product.model.js";
 import Store from "../models/store.model.js";
-import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
-import mongoose from "mongoose";
+
 
 export const listProduct = asyncHandler(async (req, res) => {
   const {

@@ -39,7 +39,7 @@ app.get("/", (req, res) => {
 
 //Error route
 app.use((err, req, res, next) => {
-  console.log("\nError route handler 💥. \n", err);
+  console.log("\nError route handler 💥. \n", err.message);
   res.status(err.statusCode || 500).json({
     status: "fail",
     message: err.message,

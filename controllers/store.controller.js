@@ -6,26 +6,44 @@ import asyncHandler from "../utils/AsyncHandler.js";
 
 export const createStore = asyncHandler(async (req, res) => {
   const seller_id = req.user._id;
-  const { storeName } = req.body;
-  if (!storeName) throw AppError(400, "all field are required");
-  const storeImgLocalPath = req?.file?.path;
-  console.log("enter");
+  const { storeName, number, address } = req.body;
+  console.log(req.body, "create-store");
 
-  const storeImage =
-    storeImgLocalPath &&
-    (await uploadImageOnCloudinary(storeImgLocalPath, `stores`));
-  if (!storeImage) throw new AppError(500, "store img upload fail");
+  // Check if a store with the same name already exists
+  const existingStore = await Store.findOne({ seller_id });
+  if (existingStore) {
+    throw new AppError(400, "Store already exists");
+  }
 
+  // Create the store
   const store = await Store.create({
     storeName,
-    storeImage: {
-      url: storeImage.url,
-      public_id: storeImage.public_id,
-    },
+    number,
+    address,
     seller_id,
   });
+
   console.log(store);
 
-  if (!store) throw new AppError(500, "store creation error");
+  if (!store) {
+    throw new AppError(500, "Store creation error");
+  }
+
   return res.status(201).json(new AppResponse(store));
+});
+
+
+export const getStore = asyncHandler(async (req, res) => {
+  const seller_id = req.user._id;
+
+  // Find the store data for the given user ID
+  const storeData = await Store.findOne({ seller_id });
+
+  // If no store data found for the user, return an error
+  if (!storeData) {
+    throw new AppError(404, "Store data not found");
+  }
+
+  // If store data found, return it in the response
+  return res.status(200).json(new AppResponse(storeData));
 });
