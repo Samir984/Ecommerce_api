@@ -8,7 +8,6 @@ import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
 
-
 export const listProduct = asyncHandler(async (req, res) => {
   const {
     productName,
@@ -19,6 +18,8 @@ export const listProduct = asyncHandler(async (req, res) => {
     subCategory,
     price,
   } = req.body;
+
+  console.log("list-product", req.body);
 
   if (
     !productName ||
@@ -31,15 +32,16 @@ export const listProduct = asyncHandler(async (req, res) => {
   )
     throw new Error(400, "all field are required");
 
-  const storeExit = await Store.findOne({ seller_id: req.user._id });
-  if (!storeExit) throw new AppError(400, "store doesn't exits");
+  const storeExits = req.user.storeExits;
+  if (!storeExits) throw new AppError(400, "store doesn't exits");
 
   const localFilePath = req?.file?.path;
 
-  if (!localFilePath) throw new Error(400, "product image is required");
+  if (!localFilePath) throw new AppError(400, "product image is required");
 
   const productImg = await uploadImageOnCloudinary(localFilePath, "products");
 
+  console.log("product imag", productImg);
   const createProduct = await Product.create({
     productName,
     productDescription,
@@ -52,13 +54,13 @@ export const listProduct = asyncHandler(async (req, res) => {
       url: productImg?.secure_url,
       public_id: productImg?.public_id,
     },
-    store_id: storeExit._id,
+    store_id: req.user._id,
   });
   if (!createProduct) throw new AppError(500, "Product upload failed");
 
   //update store listed products
-  storeExit.totalListedProducts += 1;
-  await storeExit.save();
+  req.user.totalListedProducts += 1;
+  await req.user.save();
 
   return res.status(201).json(new AppResponse(createProduct));
 });

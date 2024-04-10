@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema(
       default: "BUYER",
       enum: ["ADMIN", "BUYER", "SELLER"],
     },
+    storeExits: {
+      type: Boolean,
+      default: false,
+    },
 
     avatar: {
       url: { type: String, default: "" },

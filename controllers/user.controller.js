@@ -17,8 +17,9 @@ const GenerateAccessTokenAndSend = async (user, res) => {
     role: user.role,
     avatar: user.avatar,
     jwtToken: accessToken,
+    storeExits: user.storeExits,
   };
-
+  console.log("user", user.storeExits);
   res.status(200).json(new AppResponse(userResponse));
 };
 

@@ -23,7 +23,9 @@ export const createStore = asyncHandler(async (req, res) => {
     seller_id,
   });
 
-  console.log(store);
+  //update user schema
+  req.user.storeExits = true;
+  req.user.save();
 
   if (!store) {
     throw new AppError(500, "Store creation error");
@@ -31,7 +33,6 @@ export const createStore = asyncHandler(async (req, res) => {
 
   return res.status(201).json(new AppResponse(store));
 });
-
 
 export const getStore = asyncHandler(async (req, res) => {
   const seller_id = req.user._id;
