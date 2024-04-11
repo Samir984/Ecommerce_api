@@ -10,8 +10,8 @@ export const createStore = asyncHandler(async (req, res) => {
   console.log(req.body, "create-store");
 
   // Check if a store with the same name already exists
-  const existingStore = await Store.findOne({ seller_id });
-  if (existingStore) {
+  const storeExits = await Store.findOne({ seller_id });
+  if (storeExits) {
     throw new AppError(400, "Store already exists");
   }
 
@@ -23,9 +23,12 @@ export const createStore = asyncHandler(async (req, res) => {
     seller_id,
   });
 
+  if (!store) throw new AppError(500, " fail to create store ");
   //update user schema
-  req.user.storeExits = true;
-  req.user.save();
+  req.user.store_id = store._id;
+  const r = await req.user.save();
+
+  console.log("see this ->", store, r);
 
   if (!store) {
     throw new AppError(500, "Store creation error");
@@ -35,10 +38,10 @@ export const createStore = asyncHandler(async (req, res) => {
 });
 
 export const getStore = asyncHandler(async (req, res) => {
-  const seller_id = req.user._id;
+  const { store_id } = req.params;
 
   // Find the store data for the given user ID
-  const storeData = await Store.findOne({ seller_id });
+  const storeData = await Store.findById(store_id);
 
   // If no store data found for the user, return an error
   if (!storeData) {

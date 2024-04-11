@@ -30,9 +30,10 @@ const userSchema = new mongoose.Schema(
       default: "BUYER",
       enum: ["ADMIN", "BUYER", "SELLER"],
     },
-    storeExits: {
-      type: Boolean,
-      default: false,
+    store_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Store",
+      default: null,
     },
 
     avatar: {

@@ -40,6 +40,10 @@ const productSchema = new Schema(
       type: Number,
       required: true,
     },
+    rating: {
+      type: Number,
+      default: 0,
+    },
     store_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Store",

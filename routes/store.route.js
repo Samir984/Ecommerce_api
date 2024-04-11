@@ -6,6 +6,6 @@ const storeRouter = express.Router();
 
 storeRouter.use(verifiedJwt, verifySeller);
 storeRouter.route("/create").post(createStore);
-storeRouter.route("/getstore").get(getStore);
+storeRouter.route("/getstore/:store_id").get(getStore);
 
 export default storeRouter;
