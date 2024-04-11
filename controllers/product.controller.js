@@ -7,8 +7,10 @@ import Store from "../models/store.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
+import mongoose from "mongoose";
 
 export const listProduct = asyncHandler(async (req, res) => {
+  const seller_id = req.user._id;
   const {
     productName,
     productDescription,
@@ -32,7 +34,8 @@ export const listProduct = asyncHandler(async (req, res) => {
   )
     throw new Error(400, "all field are required");
   console.log(req.user._id);
-  const storeExits = await Store.findById();
+  const storeExits = await Store.findOne({ seller_id: req.user._id });
+
   console.log(storeExits);
   if (!storeExits) throw new AppError(400, "store doesn't exits");
 
@@ -95,6 +98,18 @@ export const deleteProductListing = asyncHandler(async (req, res) => {
 
 //get products per page
 export const getProducts = asyncHandler(async (req, res) => {
-  // const page = req.params;
-  
+  const { store_id, page, limit } = req.query;
+  console.log(store_id, page, limit);
+  const id = new mongoose.Types.ObjectId(store_id);
+  console.log(id);
+  const offset = Number(page) === 1 ? 0 : page * limit;
+  console.log(offset);
+  const result = await Product.find({})
+    .sort({ createdAt: -1 })
+    .skip(offset)
+    .limit(limit)
+    .select("price _id productImg productName"); // Select only the required fields
+
+  console.log(result);
+  return res.status(200).json(new AppResponse(result));
 });
