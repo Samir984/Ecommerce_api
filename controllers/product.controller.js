@@ -102,14 +102,14 @@ export const getProducts = asyncHandler(async (req, res) => {
   console.log(store_id, page, limit);
   const id = new mongoose.Types.ObjectId(store_id);
   console.log(id);
-  const offset = Number(page) === 1 ? 0 : page * limit;
-  console.log(offset);
+  const offset = Number(page) === 1 ? 0 : page * limit - Number(limit);
+  console.log("pageoffset",offset);
   const result = await Product.find({})
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(limit)
     .select("price _id productImg productName"); // Select only the required fields
 
-  console.log(result);
+  console.log("result length",result.length);
   return res.status(200).json(new AppResponse(result));
 });
