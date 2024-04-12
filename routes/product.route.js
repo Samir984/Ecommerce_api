@@ -17,6 +17,7 @@ productRouter
   .post(upload.single("productImg"), listProduct);
 
 productRouter.route("/deleteproduct/:store_id").delete(deleteProductListing);
+productRouter.route("/:product_id").get()
 productRouter.route("/").get(getProducts);
 
 export default productRouter;
