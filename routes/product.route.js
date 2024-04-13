@@ -2,6 +2,8 @@ import express from "express";
 import { upload } from "../libs/multer.js";
 import {
   deleteProductListing,
+  editProduct,
+  getProductById,
   getProducts,
   listProduct,
 } from "../controllers/product.controller.js";
@@ -16,8 +18,10 @@ productRouter
   .route("/listproduct/")
   .post(upload.single("productImg"), listProduct);
 
-productRouter.route("/deleteproduct/:store_id").delete(deleteProductListing);
-productRouter.route("/:product_id").get()
+productRouter.route("/:product_id").patch(upload.single("productImg"),editProduct);
+productRouter.route("/:product_id").delete(deleteProductListing);
+
+productRouter.route("/:product_id").get(getProductById);
 productRouter.route("/").get(getProducts);
 
 export default productRouter;

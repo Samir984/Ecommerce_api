@@ -7,7 +7,6 @@ import Store from "../models/store.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
-import mongoose from "mongoose";
 
 export const listProduct = asyncHandler(async (req, res) => {
   const seller_id = req.user._id;
@@ -72,7 +71,7 @@ export const listProduct = asyncHandler(async (req, res) => {
 
 //delete product listing
 export const deleteProductListing = asyncHandler(async (req, res) => {
-  const { id: productToDelete } = req.params;
+  const { product_id: productToDelete } = req.params;
 
   const product = await Product.findById(productToDelete);
   if (!product) throw new AppError(400, "No product found");
@@ -89,7 +88,7 @@ export const deleteProductListing = asyncHandler(async (req, res) => {
   if (!deletedProduct) throw new Error(500, "fail to delete product");
   await deleteAssetFromCloudinary(productImgToDelete);
 
-  //update store listed products
+  //update store listed productsz
   store.totalListedProducts -= 1;
   await store.save();
 
@@ -128,7 +127,41 @@ export const getProducts = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(limitNumber)
-    .select("_id price _id productImg productName");
+    .select("_id price _id productImg productName store_id");
 
   return res.status(200).json(new AppResponse(products, lastPage));
+});
+
+export const editProduct = asyncHandler(async (req, res) => {
+  console.log("editProduct", req.body);
+  const { product_id } = req.params;
+  const { productImg, store_id, oldImg } = req.body;
+
+  let updatedData = null;
+  //handel image
+  if (oldImg) {
+    await deleteAssetFromCloudinary(oldImg.public_id);
+    const localFilePath = req?.file?.path;
+    if (!localFilePath) throw new Error(400, "product image is required");
+
+   const updatedProduct = await uploadImageOnCloudinary(localFilePath, "products");
+    updatedData = {
+      ...req.body,
+      productImg: {
+        url: updatedProduct?.secure_url,
+        public_id: updatedProduct?.public_id,
+      },
+    };
+  } else {
+    updatedData = { ...req.body };
+  }
+
+  const updatedProduct = await Product.findByIdAndUpdate(
+    product_id,
+    updatedData,
+    { new: true }
+  );
+
+  if (!updatedProduct) throw new AppError(500, "Product upload failed");
+  return res.status(201).json(new AppResponse(updatedProduct));
 });
