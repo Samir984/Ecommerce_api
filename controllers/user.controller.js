@@ -10,6 +10,11 @@ import asyncHandler from "../utils/AsyncHandler.js";
 const GenerateAccessTokenAndSend = async (user, res) => {
   const accessToken = await user.generateAccessToken();
 
+  res.cookie("myCookie", "hello", {
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true,
+  });
+
   const userResponse = {
     _id: user._id,
     fullName: user.fullName,
@@ -94,6 +99,7 @@ export const signOutUser = asyncHandler(async (req, res) => {
 
 // update avatar
 export const updateAvatar = asyncHandler(async (req, res) => {
+  console.log("updateAvatar", req.body);
   const newAavatarLocalPath = req?.file?.path;
   if (!newAavatarLocalPath) throw new AppError(400, "Avatar file is missing");
 
@@ -117,7 +123,8 @@ export const updateAvatar = asyncHandler(async (req, res) => {
   ).select("-password");
   console.log(updatedUser);
 
-  if (updatedUser && updatedUser.avatar.public_id) {
+  console.log(avatarToDelete, updatedUser);
+  if (avatarToDelete && updatedUser && updatedUser.avatar.public_id) {
     await deleteAssetFromCloudinary(avatarToDelete);
   }
 

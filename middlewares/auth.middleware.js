@@ -17,7 +17,7 @@ const verifyJwt = asyncHandler(async (req, res, next) => {
   const user = await User.findById(decodedToken?._id).select("-password");
 
   req.user = user;
-  console.log("Auth successful")
+  console.log("Auth successful");
   next();
 });
 
