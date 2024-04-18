@@ -5,9 +5,6 @@ import verifyBuyer from "../middlewares/buyer.middleware.js";
 import { createOrder } from "../controllers/order.controller.js";
 const orderRouter = express.Router();
 
-// Secure route
-orderRouter.use(verifiedJwt, verifyBuyer);
-
-orderRouter.route("/").post(createOrder);
+orderRouter.route("/").post(verifiedJwt, verifyBuyer, createOrder);
 
 export default orderRouter;

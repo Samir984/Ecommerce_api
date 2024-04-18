@@ -4,8 +4,8 @@ import verifySeller from "../middlewares/seller.Middleware.js";
 import { createStore,getStore } from "../controllers/store.controller.js";
 const storeRouter = express.Router();
 
-storeRouter.use(verifiedJwt, verifySeller);
-storeRouter.route("/create").post(createStore);
-storeRouter.route("/getstore/:store_id").get(getStore);
+
+storeRouter.route("/create").post(verifiedJwt, verifySeller,createStore);
+storeRouter.route("/getstore/:store_id").get(verifiedJwt, verifySeller,getStore);
 
 export default storeRouter;

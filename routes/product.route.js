@@ -3,6 +3,7 @@ import { upload } from "../libs/multer.js";
 import {
   deleteProductListing,
   editProduct,
+  getAllCategories,
   getProductById,
   getProducts,
   listProduct,
@@ -11,17 +12,23 @@ import verifiedJwt from "../middlewares/auth.middleware.js"; //
 import verifySeller from "../middlewares/seller.Middleware.js";
 const productRouter = express.Router();
 
-// Secure route
-productRouter.use(verifiedJwt, verifySeller);
+productRouter.route("/categories").get(getAllCategories);
 
+// secure seller route
 productRouter
   .route("/listproduct/")
-  .post(upload.single("productImg"), listProduct);
+  .post(verifiedJwt, verifySeller, upload.single("productImg"), listProduct);
 
-productRouter.route("/:product_id").patch(upload.single("productImg"),editProduct);
-productRouter.route("/:product_id").delete(deleteProductListing);
+productRouter
+  .route("/:product_id")
+  .patch(verifiedJwt, verifySeller, upload.single("productImg"), editProduct);
+productRouter
+  .route("/:product_id")
+  .delete(verifiedJwt, verifySeller, deleteProductListing);
 
-productRouter.route("/:product_id").get(getProductById);
-productRouter.route("/").get(getProducts);
+productRouter
+  .route("/:product_id")
+  .get(verifiedJwt, verifySeller, getProductById);
+productRouter.route("/").get(verifiedJwt, verifySeller, getProducts);
 
 export default productRouter;

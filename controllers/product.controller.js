@@ -100,8 +100,8 @@ export const deleteProductListing = asyncHandler(async (req, res) => {
 export const getProductById = asyncHandler(async (req, res) => {
   const { product_id } = req.params;
 
-  const product = await Product.findById(product_id); // Find product by _id
-
+  const product = await Product.findById(product_id);
+  console.log(product);
   if (!product) res.status(404).json(new AppError(404, "Product not found"));
 
   return res.status(200).json(new AppResponse(product));
@@ -144,7 +144,10 @@ export const editProduct = asyncHandler(async (req, res) => {
     const localFilePath = req?.file?.path;
     if (!localFilePath) throw new Error(400, "product image is required");
 
-   const updatedProduct = await uploadImageOnCloudinary(localFilePath, "products");
+    const updatedProduct = await uploadImageOnCloudinary(
+      localFilePath,
+      "products"
+    );
     updatedData = {
       ...req.body,
       productImg: {
@@ -164,4 +167,17 @@ export const editProduct = asyncHandler(async (req, res) => {
 
   if (!updatedProduct) throw new AppError(500, "Product upload failed");
   return res.status(201).json(new AppResponse(updatedProduct));
+});
+
+
+export const getAllCategories = asyncHandler(async (req, res) => {
+  console.log("getAllCategories controller");
+  const categories = await Product.aggregate([
+    {
+      $group: {
+        _id: "$category",
+      }
+    },
+  ]);
+  res.status(200).json(new AppResponse(categories));
 });

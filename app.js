@@ -6,7 +6,7 @@ import cartRouter from "./routes/cart.route.js";
 import orderRouter from "./routes/order.route.js";
 import storeRouter from "./routes/store.route.js";
 import cors from "cors";
-import passportSetUp from "./libs/passport.js";
+
 import helmet from "helmet";
 const app = express();
 
@@ -19,8 +19,8 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    optionsSuccessStatus: 204,
+    methods: "GET, POST, PATCH, DELETE, PUT",
+    allowedHeaders: "Content-Type, Authorization",
   })
 );
 
