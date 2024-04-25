@@ -31,7 +31,7 @@ const cartSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Store",
           },
-          price: {
+          totalPrice: {
             type: Number,
             required: true,
           },
@@ -39,7 +39,7 @@ const cartSchema = new mongoose.Schema(
       ],
       required: true,
     },
-    totalQuantity: {
+    stock: {
       type: Number,
       required: true,
     },

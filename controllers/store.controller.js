@@ -1,4 +1,5 @@
 import { uploadImageOnCloudinary } from "../libs/cloudinary.js";
+import Product from "../models/product.model.js";
 import Store from "../models/store.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
@@ -50,4 +51,34 @@ export const getStore = asyncHandler(async (req, res) => {
 
   // If store data found, return it in the response
   return res.status(200).json(new AppResponse(storeData));
+});
+
+
+
+
+//get products per storeId
+export const getProducts = asyncHandler(async (req, res) => {
+  console.log("get products controller");
+  const { store_id, page, limit } = req.query;
+  const pageNumber = Number(page);
+  const limitNumber = Number(limit);
+  const offset = (pageNumber - 1) * limitNumber;
+  const totalCount = await Product.countDocuments({ store_id });
+  const lastPage = Math.ceil(totalCount / limitNumber);
+
+  console.log(
+    "PageNumber:",
+    pageNumber,
+    "limitNumber:",
+    limitNumber,
+    "offset:",
+    offset
+  );
+  let products = await Product.find({ store_id })
+    .sort({ createdAt: -1 })
+    .skip(offset)
+    .limit(limitNumber)
+    .select("_id price _id productImg productName store_id");
+
+  return res.status(200).json(new AppResponse(products, lastPage));
 });

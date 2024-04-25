@@ -10,7 +10,7 @@ const productSchema = new Schema(
       type: String,
       required: true,
     },
-    totalQuantity: {
+    stock: {
       type: Number,
       required: true,
       validate: {
@@ -20,6 +20,11 @@ const productSchema = new Schema(
         message: "quantity can't be 0",
       },
     },
+    keyword: {
+      type: String,
+      required: true,
+    },
+
     productImg: {
       url: { type: String, required: true },
       public_id: { type: String, required: true },

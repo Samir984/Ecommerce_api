@@ -13,11 +13,12 @@ export const listProduct = asyncHandler(async (req, res) => {
   const {
     productName,
     productDescription,
-    totalQuantity,
+    stock,
     brand,
     category,
     subCategory,
     price,
+    keyword,
   } = req.body;
 
   console.log("list product controller");
@@ -25,7 +26,7 @@ export const listProduct = asyncHandler(async (req, res) => {
   if (
     !productName ||
     !productDescription ||
-    !totalQuantity ||
+    !stock ||
     !brand ||
     !category ||
     !subCategory ||
@@ -48,11 +49,12 @@ export const listProduct = asyncHandler(async (req, res) => {
   const createProduct = await Product.create({
     productName,
     productDescription,
-    totalQuantity,
+    stock,
     brand,
     category,
     subCategory,
     price,
+    keyword,
     productImg: {
       url: productImg?.secure_url,
       public_id: productImg?.public_id,
@@ -107,31 +109,6 @@ export const getProductById = asyncHandler(async (req, res) => {
   return res.status(200).json(new AppResponse(product));
 });
 
-//get products per page
-export const getProducts = asyncHandler(async (req, res) => {
-  const { store_id, page, limit } = req.query;
-  const pageNumber = Number(page);
-  const limitNumber = Number(limit);
-  const offset = (pageNumber - 1) * limitNumber;
-  const totalCount = await Product.countDocuments({ store_id });
-  const lastPage = Math.ceil(totalCount / limitNumber);
-  console.log(
-    "PageNumber:",
-    pageNumber,
-    "limitNumber:",
-    limitNumber,
-    "offset:",
-    offset
-  );
-  let products = await Product.find({ store_id })
-    .sort({ createdAt: -1 })
-    .skip(offset)
-    .limit(limitNumber)
-    .select("_id price _id productImg productName store_id");
-
-  return res.status(200).json(new AppResponse(products, lastPage));
-});
-
 export const editProduct = asyncHandler(async (req, res) => {
   console.log("editProduct", req.body);
   const { product_id } = req.params;
@@ -169,15 +146,86 @@ export const editProduct = asyncHandler(async (req, res) => {
   return res.status(201).json(new AppResponse(updatedProduct));
 });
 
-
-export const getAllCategories = asyncHandler(async (req, res) => {
+export const getAllSubCategories = asyncHandler(async (req, res) => {
   console.log("getAllCategories controller");
   const categories = await Product.aggregate([
     {
       $group: {
-        _id: "$category",
-      }
+        _id: "$subCategory",
+        url: { $first: "$productImg.url" },
+      },
     },
   ]);
   res.status(200).json(new AppResponse(categories));
+});
+
+export const getProductsAsQuery = asyncHandler(async (req, res) => {
+  console.log("getAllCategories controller");
+  const { query, sortbyprice, brand, limit, page, subcategory } = req.query;
+  console.log(query, sortbyprice, subcategory);
+  const pageNumber = Number(page) || 1;
+  const limitNumber = Number(limit) || 4;
+  const offset = (pageNumber - 1) * limitNumber;
+
+  const pipeline = [
+    {
+      $match: {
+        $or: [
+          {
+            keyword: { $regex: query || "", $options: "i" },
+          },
+        ],
+      },
+    },
+  ];
+
+  if (subcategory) {
+    pipeline.push({
+      $match: {
+        subCategory: subcategory,
+      },
+    });
+  }
+  if (brand) {
+    console.log(brand);
+    pipeline.push({
+      $match: {
+        brand: brand,
+      },
+    });
+  }
+  const totalCount = (await Product.aggregate(pipeline)).length;
+
+  const lastPage = Math.ceil(totalCount / limitNumber);
+
+  if (sortbyprice) {
+    pipeline.push({
+      $sort: { price: sortbyprice === "asc" ? 1 : -1 },
+    });
+  }
+  pipeline.push(
+    {
+      $skip: offset,
+    },
+    {
+      $limit: limitNumber, // Apply limit
+    },
+    {
+      $project: {
+        _id: 1,
+        productImg: 1,
+        productDescription: 1,
+        store_id: 1,
+        productName: 1,
+        price: 1,
+        totalCount: 1,
+      },
+    }
+  );
+
+  console.log(pipeline);
+  const prodcuts = await Product.aggregate(pipeline);
+
+  console.log(lastPage);
+  res.status(200).json(new AppResponse(prodcuts, lastPage));
 });
