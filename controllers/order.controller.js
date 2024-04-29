@@ -6,10 +6,21 @@ import asyncHandler from "../utils/AsyncHandler.js";
 
 export const createOrder = asyncHandler(async (req, res) => {
   const user_id = req.user._id;
-  console.log('enter')
-  const { location, phoneNumber, quantity, store_id, product_id, extraPrice } =
-    req.body;
-  if (!location || !phoneNumber || !quantity || !store_id || !product_id)
+  console.log("createOrder Controller");
+  const {
+    shippingAddress,
+    phoneNumber,
+    orderItems,
+    paymentMethod,
+    totalPrice,
+  } = req.body;
+  if (
+    !shippingAddress ||
+    !phoneNumber ||
+    !orderItems ||
+    !paymentMethod ||
+    !totalPrice
+  )
     throw new AppError("all field are required");
 
   const order = await Order.create({

@@ -2,36 +2,42 @@ import mongoose from "mongoose";
 
 const orderScema = new mongoose.Schema(
   {
-  
-  
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    location: {
+    orderItems: [
+      {
+        name: { type: String, required: true },
+        qty: { type: Number, required: true },
+        image: { type: String, required: true },
+        price: { type: Number, required: true },
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+          ref: "Product",
+        },
+      },
+    ],
+
+    shippingAddress: {
       type: String,
       required: true,
+    },
+    totalPrice: {
+      type: Number,
+      required: true,
+      default: 0.0,
     },
     phoneNumber: {
       type: Number,
       required: true,
     },
-    quantity: {
-      type: Number,
+
+    paymentMethod: {
+      type: String,
       required: true,
-    },
-    store_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Store",
-    },
-    product_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-    },
-    extraPrice: {
-      type: Number,
-      default: 100,
     },
   },
   {
