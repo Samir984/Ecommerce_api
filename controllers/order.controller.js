@@ -25,13 +25,13 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new AppError("all field are required");
   const orders = orderItems.map((orderItem) => ({
     user_id,
+    store_id: orderItem.store_id,
     orderItem: {
       name: orderItem.productName,
       quantity: orderItem.quantity,
       image: orderItem.url,
       price: orderItem.price,
       product_id: orderItem.product_id,
-      store_id: orderItem.store_id,
     },
     shippingAddress,
     totalPrice,
@@ -50,7 +50,6 @@ export const createOrder = asyncHandler(async (req, res) => {
       { new: true }
     )
   );
-  console.log(updateOrderCount)
 
   await Promise.all(updateOrderCount);
   if (!updateOrderCount) throw new AppError(404, "fail to update count");
@@ -63,10 +62,21 @@ export const createOrder = asyncHandler(async (req, res) => {
     )
   );
   await Promise.all(decreateProductCount);
-
   if (!decreateProductCount) throw new AppError(404, "fail to update stock");
 
-  return res
-    .status(201)
-    .json(new AppResponse("Orders created successfully", createdOrders));
+  return res.status(201).json(new AppResponse(createdOrders));
+});
+
+export const getorders = asyncHandler(async (req, res) => {
+  console.log("getorders controller");
+  const { store_id } = req.query;
+  if (!store_id)
+    res.status(400).json(new AppError(400, "store_id is required"));
+
+  const orders = await Order.find({ store_id }).populate({
+    path: "user_id",
+    select: "fullName",
+  });
+  if (!orders) res.status(400).json(new AppError(400, "Error fetching orders"));
+  return res.status(200).json(new AppResponse(orders));
 });
