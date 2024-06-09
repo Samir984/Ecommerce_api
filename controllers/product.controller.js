@@ -119,7 +119,7 @@ export const editProduct = asyncHandler(async (req, res) => {
   if (oldImg) {
     await deleteAssetFromCloudinary(oldImg.public_id);
     const localFilePath = req?.file?.path;
-    if (!localFilePath) throw new Error(400, "product image is required");
+    if (!localFilePath) throw new AppError(400, "product image is required");
 
     const updatedProduct = await uploadImageOnCloudinary(
       localFilePath,
@@ -208,7 +208,7 @@ export const getProductsAsQuery = asyncHandler(async (req, res) => {
       $skip: offset,
     },
     {
-      $limit: limitNumber, // Apply limit
+      $limit: limitNumber,
     },
     {
       $project: {

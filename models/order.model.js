@@ -27,7 +27,7 @@ const orderSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "pending",
-      enum: ["pending", "delivered"],
+      enum: ["pending", "delivered","on way"],
     },
     shippingAddress: {
       type: String,
@@ -41,6 +41,11 @@ const orderSchema = new mongoose.Schema(
     phoneNumber: {
       type: Number,
       required: true,
+    },
+    marked: {
+      type: String,
+      enum: ["valid", "cancelled"],
+      default: "valid",
     },
 
     paymentMethod: {

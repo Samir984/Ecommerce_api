@@ -53,9 +53,6 @@ export const getStore = asyncHandler(async (req, res) => {
   return res.status(200).json(new AppResponse(storeData));
 });
 
-
-
-
 //get products per storeId
 export const getProducts = asyncHandler(async (req, res) => {
   console.log("get products controller");
@@ -78,7 +75,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(limitNumber)
-    .select("_id price _id productImg productName store_id");
+    .select("_id price _id productImg productName store_id stock");
 
   return res.status(200).json(new AppResponse(products, lastPage));
 });

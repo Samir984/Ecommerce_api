@@ -67,16 +67,34 @@ export const createOrder = asyncHandler(async (req, res) => {
   return res.status(201).json(new AppResponse(createdOrders));
 });
 
-export const getorders = asyncHandler(async (req, res) => {
+export const getOrders = asyncHandler(async (req, res) => {
   console.log("getorders controller");
   const { store_id } = req.query;
-  if (!store_id)
-    res.status(400).json(new AppError(400, "store_id is required"));
 
-  const orders = await Order.find({ store_id }).populate({
+  if (!store_id) {
+    throw new AppError(400, "store_id is required");
+  }
+
+  const orders = await Order.find({ store_id, marked: "valid" }).populate({
     path: "user_id",
-    select: "fullName",
+    select: "fullName avatar.url",
   });
-  if (!orders) res.status(400).json(new AppError(400, "Error fetching orders"));
+
+  if (!orders) {
+    throw new AppError(500, "order fetching fail");
+  }
+
   return res.status(200).json(new AppResponse(orders));
+});
+
+export const editOrder = asyncHandler(async (req, res) => {
+  console.log("edit order");
+  const { status, marked } = req.body;
+  const { order_id } = req.query;
+  const order = await Order.findById(order_id);
+  if (!order) throw new AppError(400, "fail to fetch order");
+  if (status) order.status = status;
+  if (marked) order.marked = marked;
+  const updatedOrder = await order.save();
+  return res.status(200).json(new AppResponse(updatedOrder));
 });
