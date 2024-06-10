@@ -8,21 +8,10 @@ import asyncHandler from "../utils/AsyncHandler.js";
 export const createOrder = asyncHandler(async (req, res) => {
   const user_id = req.user._id;
   console.log("createOrder Controller");
-  const {
-    shippingAddress,
-    phoneNumber,
-    orderItems,
-    paymentMethod,
-    totalPrice,
-  } = req.body;
-  if (
-    !shippingAddress ||
-    !phoneNumber ||
-    !orderItems ||
-    !paymentMethod ||
-    !totalPrice
-  )
+  const { shippingAddress, phoneNumber, orderItems, paymentMethod } = req.body;
+  if (!shippingAddress || !phoneNumber || !orderItems)
     throw new AppError("all field are required");
+
   const orders = orderItems.map((orderItem) => ({
     user_id,
     store_id: orderItem.store_id,
@@ -34,7 +23,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       product_id: orderItem.product_id,
     },
     shippingAddress,
-    totalPrice,
+    totalPrice: orderItem.price,
     phoneNumber,
     paymentMethod,
   }));
@@ -69,22 +58,37 @@ export const createOrder = asyncHandler(async (req, res) => {
 
 export const getOrders = asyncHandler(async (req, res) => {
   console.log("getorders controller");
-  const { store_id } = req.query;
+  const { store_id, page = 1, limit = 8 } = req.query;
+  const offset = (page - 1) * limit;
 
   if (!store_id) {
     throw new AppError(400, "store_id is required");
   }
 
-  const orders = await Order.find({ store_id, marked: "valid" }).populate({
-    path: "user_id",
-    select: "fullName avatar.url",
-  });
+  const totalOrders = await Order.countDocuments({ store_id, marked: "valid" });
+
+  // Fetch the paginated orders
+  let orders = await Order.find({ store_id, marked: "valid" })
+    .populate({
+      path: "user_id",
+      select: "fullName avatar.url",
+    })
+    .sort({ createdAt: -1 })
+    .skip(offset)
+    .limit(Number(limit));
 
   if (!orders) {
-    throw new AppError(500, "order fetching fail");
+    throw new AppError(500, "order fetching failed");
   }
 
-  return res.status(200).json(new AppResponse(orders));
+  const lastPage = Math.ceil(totalOrders / limit);
+
+  const statusOrder = { pending: 1, "on way": 2, delivered: 3 };
+  orders = orders.sort((a, b) => {
+    return statusOrder[a.status] - statusOrder[b.status];
+  });
+
+  return res.status(200).json(new AppResponse(orders, lastPage));
 });
 
 export const editOrder = asyncHandler(async (req, res) => {
