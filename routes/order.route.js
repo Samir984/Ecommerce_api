@@ -3,15 +3,28 @@ import verifiedJwt from "../middlewares/auth.middleware.js"; //
 
 import verifyBuyer from "../middlewares/buyer.middleware.js";
 import {
+  cancelledOrder,
   createOrder,
-  editOrder,
-  getOrders,
+  editSellerOrder,
+  getBuyersOrder,
+  getSellerOrders,
 } from "../controllers/order.controller.js";
 import verifySeller from "../middlewares/seller.Middleware.js";
 const orderRouter = express.Router();
 
-orderRouter.route("/").post(verifiedJwt, verifyBuyer, createOrder);
-orderRouter.route("/").get(verifiedJwt, verifySeller, getOrders);
-orderRouter.route("/").patch(verifiedJwt, verifySeller, editOrder);
+orderRouter.route("/createorder/").post(verifiedJwt, verifyBuyer, createOrder);
+orderRouter
+  .route("/seller/orders")
+  .get(verifiedJwt, verifySeller, getSellerOrders);
+orderRouter
+  .route("/buyer/orders")
+  .get(verifiedJwt, verifyBuyer, getBuyersOrder);
+orderRouter
+  .route("/seller/orders")
+  .patch(verifiedJwt, verifySeller, editSellerOrder);
+
+orderRouter
+  .route("/buyer/orders/cancel")
+  .get(verifiedJwt, verifyBuyer, cancelledOrder);
 
 export default orderRouter;

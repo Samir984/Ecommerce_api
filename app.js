@@ -26,10 +26,10 @@ app.use(
 
 // Routes Middleware
 app.use("/api/v1/users", userRouter);
-app.use("/api/v1/users/products", productRouter);
-app.use("/api/v1/users/carts", cartRouter);
-app.use("/api/v1/users/stores", storeRouter);
-app.use("/api/v1/users/orders", orderRouter);
+app.use("/api/v1/products", productRouter);
+app.use("/api/v1/carts", cartRouter);
+app.use("/api/v1/stores", storeRouter);
+app.use("/api/v1/orders", orderRouter);
 
 //test
 app.get("/", (req, res) => {

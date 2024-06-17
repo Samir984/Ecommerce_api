@@ -23,11 +23,16 @@ const orderSchema = new mongoose.Schema(
         required: true,
         ref: "Product",
       },
+      deliveryCharged: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
     },
     status: {
       type: String,
       default: "pending",
-      enum: ["pending", "delivered", "on way"],
+      enum: ["pending", "delivered", "on way", "cancel"],
     },
     shippingAddress: {
       type: String,
@@ -42,11 +47,7 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    deliveryCharged: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
+
     marked: {
       type: String,
       enum: ["valid", "cancelled"],

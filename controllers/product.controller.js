@@ -158,11 +158,11 @@ export const getAllSubCategories = asyncHandler(async (req, res) => {
   ]);
   res.status(200).json(new AppResponse(categories));
 });
-
 export const getProductsAsQuery = asyncHandler(async (req, res) => {
   console.log("getAllCategories controller");
   const { query, sortbyprice, brand, limit, page, subcategory } = req.query;
   console.log(query, sortbyprice, subcategory);
+
   const pageNumber = Number(page) || 1;
   const limitNumber = Number(limit) || 4;
   const offset = (pageNumber - 1) * limitNumber;
@@ -170,11 +170,8 @@ export const getProductsAsQuery = asyncHandler(async (req, res) => {
   const pipeline = [
     {
       $match: {
-        $or: [
-          {
-            keyword: { $regex: query || "", $options: "i" },
-          },
-        ],
+        keyword: { $regex: query || "", $options: "i" },
+        stock: { $gt: 0 }, // Ensure stock is greater than 0
       },
     },
   ];
@@ -194,8 +191,10 @@ export const getProductsAsQuery = asyncHandler(async (req, res) => {
       },
     });
   }
-  const totalCount = (await Product.aggregate(pipeline)).length;
 
+  // Calculate total count before applying pagination and projection
+  const totalCountPipeline = [...pipeline];
+  const totalCount = (await Product.aggregate(totalCountPipeline)).length;
   const lastPage = Math.ceil(totalCount / limitNumber);
 
   if (sortbyprice) {
@@ -203,6 +202,7 @@ export const getProductsAsQuery = asyncHandler(async (req, res) => {
       $sort: { price: sortbyprice === "asc" ? 1 : -1 },
     });
   }
+
   pipeline.push(
     {
       $skip: offset,
@@ -218,14 +218,13 @@ export const getProductsAsQuery = asyncHandler(async (req, res) => {
         store_id: 1,
         productName: 1,
         price: 1,
-        totalCount: 1,
       },
     }
   );
 
   console.log(pipeline);
-  const prodcuts = await Product.aggregate(pipeline);
+  const products = await Product.aggregate(pipeline);
 
   console.log(lastPage);
-  res.status(200).json(new AppResponse(prodcuts, lastPage));
+  res.status(200).json(new AppResponse(products, lastPage));
 });
