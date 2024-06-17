@@ -161,10 +161,10 @@ export const getAllSubCategories = asyncHandler(async (req, res) => {
 export const getProductsAsQuery = asyncHandler(async (req, res) => {
   console.log("getAllCategories controller");
   const { query, sortbyprice, brand, limit, page, subcategory } = req.query;
-  console.log(query, sortbyprice, subcategory);
+  console.log(query, sortbyprice, subcategory,page,limit);
 
   const pageNumber = Number(page) || 1;
-  const limitNumber = Number(limit) || 4;
+  const limitNumber = Number(limit) || 6;
   const offset = (pageNumber - 1) * limitNumber;
 
   const pipeline = [

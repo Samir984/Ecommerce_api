@@ -57,6 +57,7 @@ export const getStore = asyncHandler(async (req, res) => {
 export const getProducts = asyncHandler(async (req, res) => {
   console.log("get products controller");
   const { store_id, page, limit } = req.query;
+  console.log("this->", page, limit, store_id);
   const pageNumber = Number(page);
   const limitNumber = Number(limit);
   const offset = (pageNumber - 1) * limitNumber;
