@@ -19,14 +19,14 @@ function generateHmacSHA256Signature(message) {
 }
 
 export const makePayment = asyncHandler(async (req, res) => {
+console.log("make payment controller")
   const { totalPrice } = req.body;
-
   const baseUrl =
     req.hostname === "localhost"
       ? "http://localhost:5173/"
       : "https://ecommerce-cli.vercel.app/";
-  const baseURL = `${req.protocol}://${req.hostname}${port}`;z
-  console.log(baseURL, port);
+
+  console.log(baseUrl);
   const amount = totalPrice;
   const tax_amount = 10;
   const total_amount = amount + tax_amount;
@@ -34,8 +34,8 @@ export const makePayment = asyncHandler(async (req, res) => {
   const product_code = "EPAYTEST";
   const product_service_charge = 0;
   const product_delivery_charge = 0;
-  const success_url = `${baseURL}/checkout/payment`;
-  const failure_url = `${baseURL}/failure`;
+  const success_url = `${baseUrl}checkout/payment`;
+  const failure_url = `${baseUrl}failure`;
   const signed_field_names = "total_amount,transaction_uuid,product_code";
   const message = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
   const signature = generateHmacSHA256Signature(message);
