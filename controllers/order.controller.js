@@ -5,18 +5,84 @@ import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
 import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 
-function createSignature(message) {
-  const secret = "secret"; //test
+const secret = "8gBm/:&EnhH.1/q";
 
-  // Create HMAC using SHA256
-  const signature = crypto
-    .createHmac("sha256", secret)
-    .update(message)
-    .digest("base64");
-
+function generateHmacSHA256Signature(message) {
+  console.log(message);
+  const hmac = crypto.createHmac("sha256", secret);
+  hmac.update(message);
+  const signature = hmac.digest("base64");
+  console.log(signature);
   return signature;
 }
+
+export const makePayment = asyncHandler(async (req, res) => {
+  const { totalPrice } = req.body;
+
+  const port = req.hostname === "localhost" ? `:5173` : "";
+  const baseURL = `${req.protocol}://${req.hostname}${port}`;
+  console.log(baseURL, port);
+  const amount = totalPrice;
+  const tax_amount = 10;
+  const total_amount = amount + tax_amount;
+  const transaction_uuid = `${uuidv4()}`;
+  const product_code = "EPAYTEST";
+  const product_service_charge = 0;
+  const product_delivery_charge = 0;
+  const success_url = `${baseURL}/checkout/payment`;
+  const failure_url = `${baseURL}/failure`;
+  const signed_field_names = "total_amount,transaction_uuid,product_code";
+  const message = `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`;
+  const signature = generateHmacSHA256Signature(message);
+
+  const data = {
+    amount,
+    tax_amount,
+    total_amount,
+    transaction_uuid,
+    product_code,
+    product_service_charge,
+    product_delivery_charge,
+    success_url,
+    failure_url,
+    signed_field_names,
+    signature,
+  };
+
+  return res.status(200).json(new AppResponse(data));
+});
+
+export const paymentSuccess = asyncHandler(async (req, res) => {
+  console.log("payment success");
+  const { data } = req.query;
+  const responseBody = Buffer.from(data, "base64").toString("utf8");
+  const response = JSON.parse(responseBody);
+  console.log(data, "\n\n\n");
+  const {
+    transaction_code,
+    status,
+    total_amount,
+    transaction_uuid,
+    product_code,
+    signed_field_names,
+    signature,
+  } = response;
+  console.log(response);
+
+  const message = `transaction_code=${transaction_code},status=${status},total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code},signed_field_names=${signed_field_names}`;
+  const generatedSignature = generateHmacSHA256Signature(message);
+  console.log(generatedSignature, signature);
+  if (generatedSignature === signature) {
+    console.log("Signature is valid");
+
+    res.status(200).json({ message: "Payment successful", response });
+  } else {
+    console.log("Invalid signature");
+    res.status(400).json({ message: "Invalid signature" });
+  }
+});
 
 export const createOrder = asyncHandler(async (req, res) => {
   const user_id = req.user._id;
@@ -30,41 +96,6 @@ export const createOrder = asyncHandler(async (req, res) => {
   } = req.body;
   if (!shippingAddress || !phoneNumber || !orderItems)
     throw new AppError("all field are required");
-
-  if (paymentMethod === "esewa") {
-    const signature =
-      createSignature(`total_amount=${totalPrice},transaction_uuid=
-      ab14a8f2b02c3,product_code="EPAYTEST`);
-    const data = {
-      amount: totalPrice,
-      failure_url: "http://localhost:5173",
-      product_delivery_charge: "0",
-      product_service_charge: "0",
-      product_code: "EPAYTEST",
-      signature: signature,
-      signed_field_names: "total_amount,transaction_uuid,product_code",
-      success_url: "https://esewa.com.np",
-      tax_amount: "0",
-      total_amount: totalPrice,
-      transaction_uuid: "ab14a8f2b02c3",
-    };
-
-    const response = await fetch(
-      "https://rc-epay.esewa.com.np/api/epay/main/v2/form",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: JSON.stringify(signature),
-      }
-    );
-    let res = await response.json();
-    console.log(res);
-    if (res.code == 0) {
-      return;
-    }
-  }
 
   const orders = orderItems.map((orderItem) => ({
     user_id,
@@ -106,6 +137,29 @@ export const createOrder = asyncHandler(async (req, res) => {
   );
   await Promise.all(decreateProductCount);
   if (!decreateProductCount) throw new AppError(404, "fail to update stock");
+
+  if (paymentMethod === 0) {
+    const port = req.hostname === "localhost" ? `:${req.socket.localPort}` : "";
+    const baseURL = `${req.protocol}://${req.hostname}${port}`;
+    console.log(baseURL, port);
+
+    const transactionObject = {
+      amount: totalPrice,
+      tax_amount: 0,
+      total_amount: amount + tax_amount,
+      transaction_uuid: uuidv4(),
+      product_code: "EPAYTEST",
+      product_service_charge: 0,
+      product_delivery_charge: 0,
+      success_url: `${baseURL}/checkout/payment`,
+      failure_url: `${req.protocol}://${req.hostname}/failure`,
+      signed_field_names: "total_amount,transaction_uuid,product_code",
+      signature: generateHmacSHA256Signature(
+        `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`
+      ),
+    };
+    return res.status(200).json(new AppResponse(transactionObject));
+  }
 
   return res.status(201).json(new AppResponse(createdOrders));
 });
@@ -155,6 +209,7 @@ export const editSellerOrder = asyncHandler(async (req, res) => {
   if (marked) {
     if (marked === "cancelled") {
       order.marked = marked;
+      order.status = "cancel";
       const product = await Product.findById(order.orderItem.product_id);
       console.log("order", product);
       product.stock += order.orderItem.quantity;

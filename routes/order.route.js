@@ -8,6 +8,8 @@ import {
   editSellerOrder,
   getBuyersOrder,
   getSellerOrders,
+  makePayment,
+  paymentSuccess,
 } from "../controllers/order.controller.js";
 import verifySeller from "../middlewares/seller.Middleware.js";
 const orderRouter = express.Router();
@@ -26,5 +28,8 @@ orderRouter
 orderRouter
   .route("/buyer/orders/cancel")
   .get(verifiedJwt, verifyBuyer, cancelledOrder);
+
+orderRouter.route("/payment").post(verifiedJwt, verifyBuyer, makePayment);
+orderRouter.route("/payment/success").get(paymentSuccess);
 
 export default orderRouter;
