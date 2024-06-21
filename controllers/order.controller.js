@@ -21,8 +21,11 @@ function generateHmacSHA256Signature(message) {
 export const makePayment = asyncHandler(async (req, res) => {
   const { totalPrice } = req.body;
 
-  const port = req.hostname === "localhost" ? `:5173` : "";
-  const baseURL = `${req.protocol}://${req.hostname}${port}`;
+  const baseUrl =
+    req.hostname === "localhost"
+      ? "http://localhost:5173/"
+      : "https://ecommerce-cli.vercel.app/";
+  const baseURL = `${req.protocol}://${req.hostname}${port}`;z
   console.log(baseURL, port);
   const amount = totalPrice;
   const tax_amount = 10;
