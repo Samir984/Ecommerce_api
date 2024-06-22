@@ -10,23 +10,20 @@ import { v4 as uuidv4 } from "uuid";
 const secret = "8gBm/:&EnhH.1/q";
 
 function generateHmacSHA256Signature(message) {
-  console.log(message);
   const hmac = crypto.createHmac("sha256", secret);
   hmac.update(message);
-  const signature = hmac.digest("base64");
-  console.log(signature);
-  return signature;
+  return hmac.digest("base64");
 }
 
 export const makePayment = asyncHandler(async (req, res) => {
-console.log("make payment controller")
+  console.log("make payment controller");
   const { totalPrice } = req.body;
   const baseUrl =
     req.hostname === "localhost"
       ? "http://localhost:5173/"
       : "https://ecommerce-cli.vercel.app/";
 
-  console.log(baseUrl);
+  console.log("\n\n\n\n\n baseUrl:", baseUrl, req.hostname);
   const amount = totalPrice;
   const tax_amount = 10;
   const total_amount = amount + tax_amount;
@@ -58,11 +55,10 @@ console.log("make payment controller")
 });
 
 export const paymentSuccess = asyncHandler(async (req, res) => {
-  console.log("payment success");
   const { data } = req.query;
   const responseBody = Buffer.from(data, "base64").toString("utf8");
   const response = JSON.parse(responseBody);
-  console.log(data, "\n\n\n");
+
   const {
     transaction_code,
     status,
@@ -72,14 +68,12 @@ export const paymentSuccess = asyncHandler(async (req, res) => {
     signed_field_names,
     signature,
   } = response;
-  console.log(response);
 
   const message = `transaction_code=${transaction_code},status=${status},total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code},signed_field_names=${signed_field_names}`;
   const generatedSignature = generateHmacSHA256Signature(message);
-  console.log(generatedSignature, signature);
+  console.log(generatedSignature === signature);
   if (generatedSignature === signature) {
     console.log("Signature is valid");
-
     res.status(200).json({ message: "Payment successful", response });
   } else {
     console.log("Invalid signature");
@@ -140,29 +134,6 @@ export const createOrder = asyncHandler(async (req, res) => {
   );
   await Promise.all(decreateProductCount);
   if (!decreateProductCount) throw new AppError(404, "fail to update stock");
-
-  if (paymentMethod === 0) {
-    const port = req.hostname === "localhost" ? `:${req.socket.localPort}` : "";
-    const baseURL = `${req.protocol}://${req.hostname}${port}`;
-    console.log(baseURL, port);
-
-    const transactionObject = {
-      amount: totalPrice,
-      tax_amount: 0,
-      total_amount: amount + tax_amount,
-      transaction_uuid: uuidv4(),
-      product_code: "EPAYTEST",
-      product_service_charge: 0,
-      product_delivery_charge: 0,
-      success_url: `${baseURL}/checkout/payment`,
-      failure_url: `${req.protocol}://${req.hostname}/failure`,
-      signed_field_names: "total_amount,transaction_uuid,product_code",
-      signature: generateHmacSHA256Signature(
-        `total_amount=${total_amount},transaction_uuid=${transaction_uuid},product_code=${product_code}`
-      ),
-    };
-    return res.status(200).json(new AppResponse(transactionObject));
-  }
 
   return res.status(201).json(new AppResponse(createdOrders));
 });
