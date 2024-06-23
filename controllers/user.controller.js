@@ -87,12 +87,12 @@ export const signInUser = asyncHandler(async (req, res) => {
     email,
   });
 
-  if(user.role!==role){
-    throw new AppError(404, `This Account already exits as ${user.role}`);
-
-  }
   if (!user) {
     throw new AppError(404, "User doesn't exist. Please signup first");
+  }
+
+   if(user.role!==role){
+    throw new AppError(404, `This Account already exits as ${user.role}`);
   }
 
   const isPasswordCorrect = await user.comparePassword(password);
