@@ -77,7 +77,7 @@ export const signUpUser = asyncHandler(async (req, res) => {
 
 //signin controller
 export const signInUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password,role } = req.body;
 
   if (!email || !password) {
     throw new AppError(400, "All fields are required");
@@ -87,6 +87,10 @@ export const signInUser = asyncHandler(async (req, res) => {
     email,
   });
 
+  if(user.role!==role){
+    throw new AppError(404, `This Account already exits as ${user.role}`);
+
+  }
   if (!user) {
     throw new AppError(404, "User doesn't exist. Please signup first");
   }
