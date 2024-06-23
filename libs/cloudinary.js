@@ -1,5 +1,8 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import { promisify } from "util";
+
+const writeFileAsync = promisify(fs.writeFile);
 
 cloudinary.config({
   cloud_name: process.env.COUDINARY_NAME,
@@ -7,40 +10,47 @@ cloudinary.config({
   api_secret: process.env.COUDINARY_SECRET,
 });
 
-const uploadImageOnCloudinary = async function (localFilePath, folder) {
+const uploadImageOnCloudinary = async function (fileBuffer, folder) {
   try {
-    if (!localFilePath) return null;
+    if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
+      throw new Error("Invalid file buffer");
+    }
 
-    //upload to cloudinary if localFilePath exists
-    const result = await cloudinary.uploader.upload(localFilePath, {
+    // Write the buffer to a temporary file
+    const tempFilePath = `/tmp/${Date.now()}.jpg`; // Example: Save as a JPEG file
+    await writeFileAsync(tempFilePath, fileBuffer);
+
+    // Upload the temporary file to Cloudinary
+    const result = await cloudinary.uploader.upload(tempFilePath, {
       resource_type: "auto",
       folder,
     });
 
-    // console.log("file uploaded to cloudinary", result.url);
+    // Delete the temporary file after uploading to Cloudinary
+    fs.unlinkSync(tempFilePath);
 
-    fs.unlinkSync(localFilePath); //remove file from localFilePath after uploading to cloudinary
     return result;
   } catch (error) {
-    fs.unlinkSync(localFilePath);
-    return error;
+    console.error("Error uploading image to Cloudinary:", error);
+    throw error;
   }
 };
 
-const deleteAssetFromCloudinary = async function (
-  public_id,
-  resource_type = "image"
-) {
+const deleteAssetFromCloudinary = async function (public_id, resource_type = "image") {
   try {
-    if (!public_id) return null;
+    if (!public_id) {
+      throw new Error("Missing public_id");
+    }
 
-    //delete file from cloudinary
+    // Delete file from Cloudinary
     const result = await cloudinary.uploader.destroy(public_id, {
-      resource_type: `${resource_type}`,
+      resource_type,
     });
+
+    return result;
   } catch (error) {
-    console.log("delete assset operation failed", error);
-    return error;
+    console.error("Error deleting asset from Cloudinary:", error);
+    throw error;
   }
 };
 

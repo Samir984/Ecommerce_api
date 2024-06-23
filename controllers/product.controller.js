@@ -31,21 +31,30 @@ export const listProduct = asyncHandler(async (req, res) => {
     !category ||
     !subCategory ||
     !price
-  )
-    throw new Error(400, "all field are required");
-  console.log(req.user._id);
-  const storeExits = await Store.findOne({ seller_id: req.user._id });
+  ) {
+    throw new AppError(400, "All fields are required");
+  }
 
-  console.log(storeExits);
-  if (!storeExits) throw new AppError(400, "store doesn't exits");
+  const storeExists = await Store.findOne({ seller_id });
+  if (!storeExists) {
+    throw new AppError(400, "Store doesn't exist");
+  }
 
-  const localFilePath = req?.file?.path;
+  const productImgBuffer = req?.file?.buffer;
 
-  if (!localFilePath) throw new Error(400, "product image is required");
+  if (!productImgBuffer) {
+    throw new AppError(400, "Product image is required");
+  }
 
-  const productImg = await uploadImageOnCloudinary(localFilePath, "products");
+  const productImg = await uploadImageOnCloudinary(
+    productImgBuffer,
+    "products"
+  );
 
-  if (!productImg) throw new AppError(500, "Error while uploading Products");
+  if (!productImg) {
+    throw new AppError(500, "Error while uploading product image");
+  }
+
   const createProduct = await Product.create({
     productName,
     productDescription,
@@ -56,17 +65,19 @@ export const listProduct = asyncHandler(async (req, res) => {
     price,
     keyword,
     productImg: {
-      url: productImg?.secure_url,
-      public_id: productImg?.public_id,
+      url: productImg.secure_url,
+      public_id: productImg.public_id,
     },
-    store_id: storeExits._id,
+    store_id: storeExists._id,
   });
-  if (!createProduct) throw new AppError(500, "Product upload failed");
 
-  //update store listed products
+  if (!createProduct) {
+    throw new AppError(500, "Failed to create product");
+  }
 
-  storeExits.totalListedProducts += 1;
-  storeExits.save();
+  // Update store's totalListedProducts
+  storeExists.totalListedProducts += 1;
+  await storeExists.save();
 
   return res.status(201).json(new AppResponse(createProduct));
 });
@@ -109,31 +120,30 @@ export const getProductById = asyncHandler(async (req, res) => {
   return res.status(200).json(new AppResponse(product));
 });
 
-export const editProduct = asyncHandler(async (req, res) => {
-  console.log("editProduct", req.body);
-  const { product_id } = req.params;
-  const { productImg, store_id, oldImg } = req.body;
 
-  let updatedData = null;
-  //handel image
+export const editProduct = asyncHandler(async (req, res) => {
+  const { product_id } = req.params;
+  const { oldImg } = req.body;
+
+  let updatedData = { ...req.body };
+
+  // Handle image update
   if (oldImg) {
     await deleteAssetFromCloudinary(oldImg.public_id);
-    const localFilePath = req?.file?.path;
-    if (!localFilePath) throw new AppError(400, "product image is required");
 
-    const updatedProduct = await uploadImageOnCloudinary(
-      localFilePath,
+    const productImgBuffer = req?.file?.buffer;
+    if (!productImgBuffer) {
+      throw new AppError(400, "Product image is required");
+    }
+
+    const updatedProductImg = await uploadImageOnCloudinary(
+      productImgBuffer,
       "products"
     );
-    updatedData = {
-      ...req.body,
-      productImg: {
-        url: updatedProduct?.secure_url,
-        public_id: updatedProduct?.public_id,
-      },
+    updatedData.productImg = {
+      url: updatedProductImg.secure_url,
+      public_id: updatedProductImg.public_id,
     };
-  } else {
-    updatedData = { ...req.body };
   }
 
   const updatedProduct = await Product.findByIdAndUpdate(
@@ -142,8 +152,11 @@ export const editProduct = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  if (!updatedProduct) throw new AppError(500, "Product upload failed");
-  return res.status(201).json(new AppResponse(updatedProduct));
+  if (!updatedProduct) {
+    throw new AppError(500, "Failed to update product");
+  }
+
+  return res.status(200).json(new AppResponse(updatedProduct));
 });
 
 export const getAllSubCategories = asyncHandler(async (req, res) => {
@@ -161,7 +174,7 @@ export const getAllSubCategories = asyncHandler(async (req, res) => {
 export const getProductsAsQuery = asyncHandler(async (req, res) => {
   console.log("getAllCategories controller");
   const { query, sortbyprice, brand, limit, page, subcategory } = req.query;
-  console.log(query, sortbyprice, subcategory,page,limit);
+  console.log(query, sortbyprice, subcategory, page, limit);
 
   const pageNumber = Number(page) || 1;
   const limitNumber = Number(limit) || 6;

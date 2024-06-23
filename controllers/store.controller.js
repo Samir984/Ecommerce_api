@@ -1,4 +1,3 @@
-import { uploadImageOnCloudinary } from "../libs/cloudinary.js";
 import Product from "../models/product.model.js";
 import Store from "../models/store.model.js";
 import AppError from "../utils/AppError.js";

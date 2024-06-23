@@ -1,3 +1,4 @@
+import multer from "multer";
 import {
   deleteAssetFromCloudinary,
   uploadImageOnCloudinary,
@@ -6,6 +7,10 @@ import User from "../models/user.model.js";
 import AppError from "../utils/AppError.js";
 import AppResponse from "../utils/AppReponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
+
+// Use memory storage for multer
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 const GenerateAccessTokenAndSend = async (user, res) => {
   const accessToken = await user.generateAccessToken();
@@ -33,22 +38,23 @@ export const signUpUser = asyncHandler(async (req, res) => {
   const { fullName, email, password, role } = req.body;
   console.log("user1", req.body);
   if (!fullName || !email || !password) {
-    throw new AppError(400, "All fileds are required");
+    throw new AppError(400, "All fields are required");
   }
 
   console.log(fullName, email, "signup");
 
   const userExit = await User.findOne({ email });
-  if (userExit) throw new AppError(409, "Account already exits, Please login");
+  if (userExit) throw new AppError(409, "Account already exists, Please login");
 
-  const avatarLocalPath = req?.file?.path;
+  const avatarBuffer = req?.file?.buffer;
 
-  const avatar =
-    avatarLocalPath &&
-    (await uploadImageOnCloudinary(
-      avatarLocalPath,
+  let avatar;
+  if (avatarBuffer) {
+    avatar = await uploadImageOnCloudinary(
+      avatarBuffer,
       `${role?.toLowerCase() || "buyer" + "s"}`
-    ));
+    );
+  }
 
   const createUser = await User.create({
     fullName,
@@ -74,7 +80,7 @@ export const signInUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    throw new AppError(400, "All field are required");
+    throw new AppError(400, "All fields are required");
   }
 
   const user = await User.findOne({
@@ -82,7 +88,7 @@ export const signInUser = asyncHandler(async (req, res) => {
   });
 
   if (!user) {
-    throw new AppError(404, "User doesn't exist. Please signup First");
+    throw new AppError(404, "User doesn't exist. Please signup first");
   }
 
   const isPasswordCorrect = await user.comparePassword(password);
@@ -94,17 +100,17 @@ export const signInUser = asyncHandler(async (req, res) => {
 //signout user
 export const signOutUser = asyncHandler(async (req, res) => {
   res.clearCookie("jwtToken");
-  res.json(new AppResponse("Successfully signout"));
+  res.json(new AppResponse("Successfully signed out"));
 });
 
 // update avatar
 export const updateAvatar = asyncHandler(async (req, res) => {
   console.log("updateAvatar", req.body);
-  const newAavatarLocalPath = req?.file?.path;
-  if (!newAavatarLocalPath) throw new AppError(400, "Avatar file is missing");
+  const newAvatarBuffer = req?.file?.buffer;
+  if (!newAvatarBuffer) throw new AppError(400, "Avatar file is missing");
 
   const newAvatar = await uploadImageOnCloudinary(
-    newAavatarLocalPath,
+    newAvatarBuffer,
     `${req.user.role.toLowerCase() + "s"}`
   );
   if (!newAvatar) throw new AppError(400, "Error while uploading avatar");
