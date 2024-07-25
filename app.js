@@ -5,8 +5,9 @@ import productRouter from "./routes/product.route.js";
 import orderRouter from "./routes/order.route.js";
 import storeRouter from "./routes/store.route.js";
 import cors from "cors";
-
 import helmet from "helmet";
+import Analytic from "./models/analytic.model.js";
+
 const app = express();
 
 // Globle Middleware
@@ -22,6 +23,22 @@ app.use(
     allowedHeaders: "Content-Type, Authorization",
   })
 );
+
+let requestCount = 0;
+app.use(async (req, res, next) => {
+  requestCount++;
+  console.log(`Total requests: ${requestCount}`);
+
+  const userIp = req.ip;
+
+  const userExists = await Analytic.findOne({ ip: userIp });
+
+  if (!userExists) {
+   await Analytic.create({ ip: userIp });
+  }
+
+  next();
+});
 
 // Routes Middleware
 app.use("/api/v1/users", userRouter);
